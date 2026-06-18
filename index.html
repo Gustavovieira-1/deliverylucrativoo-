@@ -23,19 +23,19 @@
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
     .video-wrapper iframe {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
-      opacity: 0; transition: opacity 0.3s ease;
     }
-    .video-wrapper iframe.visivel { opacity: 1; }
-    /* Cobre tudo enquanto o player inicializa — evita flash de controles */
+    /* Cover preto — esconde TUDO do player enquanto inicializa */
     .video-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 20; background: #000; transition: opacity 0.4s ease;
+      z-index: 30; background: #000;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
     }
-    .video-cover.hide { opacity: 0; pointer-events: none; }
-    /* Bloqueia pause/skip para sempre */
+    .video-cover.hide { opacity: 0; }
+    /* Bloqueia qualquer clique no player para sempre */
     .video-block {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 10; cursor: default;
+      z-index: 20; cursor: default;
     }
     .cta-wrap { text-align: center; padding: 28px 20px 40px; display: none; animation: fadeUp .6s ease forwards; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -59,7 +59,9 @@
     <iframe id="vsl-iframe" src="about:blank"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
     </iframe>
+    <!-- Cover preto: esconde o player enquanto inicializa -->
     <div class="video-cover" id="video-cover"></div>
+    <!-- Bloqueia cliques no player para sempre -->
     <div class="video-block"></div>
   </div>
 </section>
@@ -69,6 +71,8 @@
   <p class="cta-note" id="vsl-nota">🔒 Compra 100% segura · Acesso imediato após pagamento</p>
 </div>
 
+<!-- YouTube IFrame API -->
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
   var SB_URL = 'https://oijcggqfcgjkgcaymjqx.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pamNnZ3FmY2dqa2djYXltanF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDE0NzcsImV4cCI6MjA4ODMxNzQ3N30.URV7NROQ0wAGG_GzrS2yn2Kksxaefy4v4JJ49yRW51A';
@@ -84,6 +88,12 @@
     segundos:  5
   };
 
+  var ytPlayer = null;
+  var videoIdGlobal = null;
+  var secsGlobal = 5;
+  var ytApiReady = false;
+  var configReady = false;
+
   function ytId(input) {
     if (!input) return null;
     input = input.trim();
@@ -91,6 +101,54 @@
     if (m) return m[1];
     if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
     return null;
+  }
+
+  // Chamado pela API do YouTube quando estiver pronta
+  function onYouTubeIframeAPIReady() {
+    ytApiReady = true;
+    tentarIniciar();
+  }
+
+  function tentarIniciar() {
+    if (!ytApiReady || !configReady || !videoIdGlobal) return;
+
+    // Cria o player com YT API — autoplay mutado (necessário para browsers modernos)
+    ytPlayer = new YT.Player('vsl-iframe', {
+      videoId: videoIdGlobal,
+      playerVars: {
+        autoplay:        1,
+        mute:            1,   // mute para autoplay funcionar
+        controls:        0,   // sem barra de controles
+        disablekb:       1,   // sem teclado
+        fs:              0,   // sem fullscreen
+        rel:             0,
+        modestbranding:  1,
+        iv_load_policy:  3,
+        playsinline:     1
+      },
+      events: {
+        onReady: function(e) {
+          e.target.playVideo();
+          // Após 2.5s o vídeo já está tocando — remove o cover e desmuta
+          setTimeout(function() {
+            var cover = document.getElementById('video-cover');
+            cover.classList.add('hide');
+            // Desmuta após o cover sumir (mais 0.5s da transição)
+            setTimeout(function() {
+              if (ytPlayer && ytPlayer.unMute) ytPlayer.unMute();
+            }, 500);
+          }, 2500);
+        },
+        onStateChange: function(e) {
+          // Se o player parar (estado 2 = pausado), retoma automaticamente
+          if (e.data === YT.PlayerState.PAUSED) {
+            setTimeout(function() {
+              if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+            }, 200);
+          }
+        }
+      }
+    });
   }
 
   function aplicar(cfg) {
@@ -102,30 +160,20 @@
     document.getElementById('vsl-nota').textContent   = cfg.btn_nota  || DEFAULTS.btn_nota;
     document.title = (cfg.linha1 || DEFAULTS.linha1) + ' ' + (cfg.linha2 || DEFAULTS.linha2);
 
-    var id = ytId(cfg.video_id || '');
-    if (id) {
-      var iframe = document.getElementById('vsl-iframe');
-      var cover  = document.getElementById('video-cover');
+    videoIdGlobal = ytId(cfg.video_id || '');
+    secsGlobal    = parseInt(cfg.segundos) || 5;
+    configReady   = true;
+    tentarIniciar();
 
-      iframe.src = 'https://www.youtube.com/embed/' + id
-        + '?rel=0&modestbranding=1&controls=0&disablekb=1&fs=0&iv_load_policy=3&autoplay=1';
-
-      // Remove o cover preto só após 2s — player já inicializou sem mostrar controles
-      setTimeout(function() {
-        iframe.classList.add('visivel');
-        cover.classList.add('hide');
-      }, 2000);
-    }
-
-    var secs = parseInt(cfg.segundos) || 5;
+    // Timer do botão CTA — independente do vídeo
     setTimeout(function() {
       var cta = document.getElementById('cta');
       cta.style.display = 'block';
       cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, secs * 1000);
+    }, secsGlobal * 1000);
   }
 
-  // Carrega do Supabase
+  // Carrega config do Supabase
   fetch(SB_URL + '/rest/v1/vsl_config?id=eq.1&select=*', {
     headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
   })
