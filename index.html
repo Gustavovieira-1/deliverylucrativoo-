@@ -21,9 +21,11 @@
       border: 2px solid rgba(255,107,0,0.35); background: #000;
     }
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
-    .video-wrapper iframe {
+    .video-wrapper iframe,
+    .video-wrapper #vsl-player {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     }
+    #vsl-player iframe { width: 100%; height: 100%; border: none; }
     /* Cover preto — esconde TUDO do player enquanto inicializa */
     .video-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -56,9 +58,7 @@
 
 <section class="video-section">
   <div class="video-wrapper">
-    <iframe id="vsl-iframe" src="about:blank"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-    </iframe>
+    <div id="vsl-player"></div>
     <!-- Cover preto: esconde o player enquanto inicializa -->
     <div class="video-cover" id="video-cover"></div>
     <!-- Bloqueia cliques no player para sempre -->
@@ -113,7 +113,7 @@
     if (!ytApiReady || !configReady || !videoIdGlobal) return;
 
     // Cria o player com YT API — autoplay mutado (necessário para browsers modernos)
-    ytPlayer = new YT.Player('vsl-iframe', {
+    ytPlayer = new YT.Player('vsl-player', {
       videoId: videoIdGlobal,
       playerVars: {
         autoplay:        1,
