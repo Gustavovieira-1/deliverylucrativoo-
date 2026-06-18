@@ -1,1 +1,457 @@
-teste
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Descubra Como Faturar R$1.000 Por Dia com Delivery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #E8220A;
+      --orange: #FF6B00;
+      --orange-light: #FF9A3C;
+      --gold: #FFD700;
+      --dark: #0A0A0A;
+      --dark2: #111111;
+      --dark3: #1A1A1A;
+      --text: #F0F0F0;
+      --muted: #999;
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      text-align: center;
+      padding: 10px 16px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      color: #fff;
+      animation: pulse-bar 2s ease-in-out infinite;
+    }
+    @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:.85} }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 48px 20px 32px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(26px, 5vw, 52px);
+      line-height: 1.1;
+      margin-bottom: 18px;
+      color: #fff;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 19px);
+      color: #ccc;
+      max-width: 640px;
+      margin: 0 auto 10px;
+      line-height: 1.6;
+    }
+
+    /* ── VIDEO BOX ── */
+    .video-section {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 16px 40px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 60px rgba(232,34,10,0.35), 0 0 120px rgba(255,107,0,0.15);
+      border: 2px solid rgba(255,107,0,0.3);
+      background: #000;
+    }
+
+    .video-wrapper::before {
+      content: '';
+      display: block;
+      padding-top: 56.25%;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* ── AFTER VIDEO ── */
+    .after-video {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 16px 48px;
+      text-align: center;
+    }
+
+    .watch-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--orange-light);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .watch-label::before, .watch-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,107,0,0.4));
+      max-width: 80px;
+    }
+    .watch-label::after { background: linear-gradient(270deg, transparent, rgba(255,107,0,0.4)); }
+
+    /* ── COPY SECTION ── */
+    .copy-section {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 20px 48px;
+    }
+
+    .copy-headline {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(22px, 4vw, 36px);
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.2;
+      color: #fff;
+    }
+    .copy-headline span { color: var(--orange); }
+
+    .copy-block {
+      font-size: 17px;
+      line-height: 1.85;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .copy-block strong { color: #fff; }
+
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(232,34,10,0.12), rgba(255,107,0,0.08));
+      border-left: 4px solid var(--orange);
+      border-radius: 4px;
+      padding: 20px 24px;
+      margin: 28px 0;
+      font-size: 17px;
+      line-height: 1.8;
+      color: #ddd;
+    }
+
+    /* ── BULLETS ── */
+    .bullets {
+      list-style: none;
+      margin: 32px 0;
+    }
+    .bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+      font-size: 16px;
+      color: #ccc;
+      line-height: 1.6;
+    }
+    .bullets li .icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    /* ── GUARANTEE ── */
+    .guarantee {
+      background: var(--dark3);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 8px;
+      padding: 28px 24px;
+      text-align: center;
+      margin: 36px 0;
+    }
+    .guarantee .badge {
+      font-size: 48px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .guarantee h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .guarantee p { font-size: 15px; color: #aaa; line-height: 1.7; }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 40px 20px 64px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .cta-above {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: clamp(18px, 3vw, 28px);
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .cta-above span { color: var(--orange); }
+
+    .price-area {
+      margin: 20px 0 28px;
+    }
+    .price-from {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: line-through;
+      margin-bottom: 4px;
+    }
+    .price-now {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(36px, 6vw, 64px);
+      color: #fff;
+      line-height: 1;
+    }
+    .price-now sup { font-size: 40%; vertical-align: super; color: var(--orange); }
+    .price-note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+    .btn-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(16px, 2.5vw, 22px);
+      text-decoration: none;
+      padding: 20px 48px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 8px 32px rgba(255,107,0,0.4);
+      transition: transform .15s, box-shadow .15s;
+      position: relative;
+      overflow: hidden;
+      border: none;
+      cursor: pointer;
+      animation: glow-btn 2.5s ease-in-out infinite;
+    }
+    @keyframes glow-btn {
+      0%,100% { box-shadow: 0 8px 32px rgba(255,107,0,0.4); }
+      50% { box-shadow: 0 8px 48px rgba(255,107,0,0.7), 0 0 80px rgba(232,34,10,0.3); }
+    }
+    .btn-cta:hover { transform: translateY(-2px) scale(1.02); }
+    .btn-cta:active { transform: scale(0.98); }
+
+    .cta-below {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 24px 20px;
+      border-top: 1px solid #1f1f1f;
+      font-size: 12px;
+      color: #444;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,107,0,0.3), transparent);
+      margin: 40px auto;
+      max-width: 500px;
+    }
+
+    @media(max-width:600px) {
+      .btn-cta { padding: 18px 28px; width: 100%; max-width: 360px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar" id="topbar-text">🔥 ATENÇÃO: Vagas Limitadas — Garanta Sua Entrada Agora!</div>
+
+  <section class="hero">
+    <div class="eyebrow" id="eyebrow-text">Método Exclusivo</div>
+    <h1 id="hero-title">Descubra Como <span>Faturar R$1.000</span><br>Por Dia com Delivery</h1>
+    <p class="hero-sub" id="hero-subtitle">Assista o vídeo abaixo até o final e veja como pessoas comuns estão construindo uma renda de 5 dígitos por mês com delivery — sem precisar ter experiência anterior.</p>
+  </section>
+
+  <section class="video-section">
+    <div class="video-wrapper">
+      <iframe id="main-video"
+        src="https://www.youtube.com/embed/SEU_VIDEO_ID?rel=0&modestbranding=1&autohide=1"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </section>
+
+  <div class="after-video">
+    <div class="watch-label" id="watch-label-text">👆 Assista o vídeo completo antes de continuar</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <section class="copy-section">
+    <h2 class="copy-headline" id="copy-title">Se Você Quer <span>Liberdade Financeira</span>,<br>Este é o Seu Momento</h2>
+
+    <p class="copy-block" id="copy-p1">
+      Eu sei que você já tentou outras formas de ganhar dinheiro. Talvez já tenha ouvido promessas vazias, comprado cursos que não entregaram resultado, ou simplesmente não sabe por onde começar.<br><br>
+      <strong>Mas o mercado de delivery é diferente.</strong> As pessoas precisam comer todos os dias. E quem sabe posicionar o negócio certo, no lugar certo, colhe resultados todos os dias.
+    </p>
+
+    <div class="highlight-box" id="highlight-box-text">
+      💡 <strong>Fato:</strong> O mercado de delivery no Brasil movimentou mais de <strong>R$ 50 bilhões</strong> em 2023 — e continua crescendo. A fatia que você vai pegar depende só de você ter o método certo.
+    </div>
+
+    <p class="copy-block" id="copy-p2">
+      No meu curso, eu te mostro <strong>passo a passo</strong> como montar, estruturar e escalar um negócio de delivery que gera R$1.000 por dia — com consistência, mesmo que você esteja começando do zero.
+    </p>
+
+    <ul class="bullets" id="bullets-list">
+      <li><span class="icon">✓</span><span>Como escolher o nicho certo de delivery para a sua cidade</span></li>
+      <li><span class="icon">✓</span><span>O sistema de precificação que garante margem de lucro real</span></li>
+      <li><span class="icon">✓</span><span>Como atrair clientes todos os dias com ou sem anúncios pagos</span></li>
+      <li><span class="icon">✓</span><span>A estratégia de fidelização que faz o cliente pedir de novo e de novo</span></li>
+      <li><span class="icon">✓</span><span>Como escalar para R$1.000/dia com uma operação enxuta e lucrativa</span></li>
+      <li><span class="icon">✓</span><span>Suporte direto comigo para tirar suas dúvidas ao longo do processo</span></li>
+    </ul>
+
+    <div class="guarantee">
+      <span class="badge">🛡️</span>
+      <h3 id="guarantee-title">Garantia de 7 Dias</h3>
+      <p id="guarantee-text">Se você assistir o curso e achar que não vale cada centavo, eu devolvo 100% do seu dinheiro. Sem perguntas, sem burocracia. O risco é todo meu.</p>
+    </div>
+  </section>
+
+  <section class="cta-section">
+    <p class="cta-above" id="cta-above-text">Está pronto para <span>mudar sua vida</span>?</p>
+
+    <div class="price-area">
+      <div class="price-from" id="price-from">De R$ 497,00</div>
+      <div class="price-now"><sup>R$</sup><span id="price-value">197</span></div>
+      <div class="price-note" id="price-note">Pagamento único · Acesso imediato · Para sempre</div>
+    </div>
+
+    <a class="btn-cta" id="cta-btn" href="https://pay.kiwify.com.br/SEU_LINK" target="_blank">
+      <span id="cta-btn-text">QUERO FATURAR R$1.000 POR DIA →</span>
+    </a>
+
+    <p class="cta-below" id="cta-below-text">🔒 Compra 100% segura · Acesso imediato após pagamento</p>
+  </section>
+
+  <footer>
+    <p id="footer-text">© 2025 Delivery Lucrativo · Todos os direitos reservados</p>
+  </footer>
+
+  <script>
+    // Carrega configurações salvas no localStorage (definidas pelo painel admin)
+    const cfg = JSON.parse(localStorage.getItem('vsl_config') || '{}');
+
+    function set(id, val) {
+      const el = document.getElementById(id);
+      if (el && val) el.innerHTML = val;
+    }
+
+    function applyConfig(c) {
+      if (!c) return;
+      set('page-title', c.pageTitle);
+      set('topbar-text', c.topbarText);
+      set('eyebrow-text', c.eyebrowText);
+      set('hero-title', c.heroTitle);
+      set('hero-subtitle', c.heroSubtitle);
+      set('watch-label-text', c.watchLabel);
+      set('copy-title', c.copyTitle);
+      set('copy-p1', c.copyP1);
+      set('highlight-box-text', c.highlightBox);
+      set('copy-p2', c.copyP2);
+      set('guarantee-title', c.guaranteeTitle);
+      set('guarantee-text', c.guaranteeText);
+      set('cta-above-text', c.ctaAbove);
+      set('price-from', c.priceFrom);
+      set('price-value', c.priceValue);
+      set('price-note', c.priceNote);
+      set('cta-btn-text', c.ctaBtnText);
+      set('cta-below-text', c.ctaBelow);
+      set('footer-text', c.footerText);
+      if (c.ctaLink) document.getElementById('cta-btn').href = c.ctaLink;
+      if (c.videoId) {
+        document.getElementById('main-video').src =
+          'https://www.youtube.com/embed/' + c.videoId + '?rel=0&modestbranding=1';
+      }
+      if (c.pageTitle) document.title = c.pageTitle;
+      // Bullets dinâmicos
+      if (c.bullets && Array.isArray(c.bullets)) {
+        const ul = document.getElementById('bullets-list');
+        ul.innerHTML = c.bullets.map(b =>
+          `<li><span class="icon">✓</span><span>${b}</span></li>`
+        ).join('');
+      }
+    }
+
+    applyConfig(cfg);
+  </script>
+</body>
+</html>
