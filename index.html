@@ -21,27 +21,34 @@
       border: 2px solid rgba(255,107,0,0.35); background: #000;
     }
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
-    #player {
+    #yt-iframe {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     }
-    /* Cover preto por cima do player — some após o vídeo realmente iniciar */
-    .video-cover {
+    /* Cover clicável que some ao clicar — dispara o autoplay com som */
+    .play-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 30; background: #000; transition: opacity 0.6s ease;
+      z-index: 30; background: #000; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; transition: opacity 0.5s ease;
+    }
+    .play-cover.hide { opacity: 0; pointer-events: none; }
+    .play-btn {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--red), var(--orange));
       display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 40px rgba(255,107,0,0.6);
+      animation: pulse-play 1.8s ease-in-out infinite;
     }
-    .video-cover.hide { opacity: 0; pointer-events: none; }
-    /* Spinner de loading */
-    .spinner {
-      width: 48px; height: 48px; border: 4px solid rgba(255,107,0,0.2);
-      border-top-color: var(--orange); border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .play-btn svg { margin-left: 6px; }
+    @keyframes pulse-play {
+      0%,100% { box-shadow: 0 0 30px rgba(255,107,0,0.5); transform: scale(1); }
+      50%      { box-shadow: 0 0 60px rgba(255,107,0,0.9); transform: scale(1.07); }
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    /* Bloqueia cliques no player */
+    .play-text { font-size: 14px; font-weight: 700; color: #ccc; letter-spacing: 1px; text-transform: uppercase; }
+    /* Bloqueia cliques no iframe depois que o vídeo inicia */
     .video-block {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 20; cursor: default;
+      z-index: 20; cursor: default; display: none;
     }
     .cta-wrap { text-align: center; padding: 28px 20px 40px; display: none; animation: fadeUp .6s ease forwards; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -62,9 +69,14 @@
 
 <section class="video-section">
   <div class="video-wrapper">
-    <div id="player"></div>
-    <div class="video-cover" id="video-cover"><div class="spinner"></div></div>
-    <div class="video-block"></div>
+    <iframe id="yt-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <div class="play-cover" id="play-cover" onclick="iniciarVideo()">
+      <div class="play-btn">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+      </div>
+      <div class="play-text">▶ Clique para assistir</div>
+    </div>
+    <div class="video-block" id="video-block"></div>
   </div>
 </section>
 
@@ -88,10 +100,9 @@
     segundos: 5
   };
 
-  var ytPlayer       = null;
-  var ctaTimer       = null;
-  var videoStarted   = false;  // true quando o vídeo realmente começou a tocar
-  var ctaSeconds     = 5;
+  var VIDEO_ID  = '';
+  var CTA_SECS  = 5;
+  var ctaTimer  = null;
 
   function ytId(input) {
     if (!input) return null;
@@ -105,7 +116,30 @@
   function mostrarCTA() {
     var cta = document.getElementById('cta');
     cta.style.display = 'block';
-    cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function() {
+      cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  // Usuário clica no cover → iframe carrega com autoplay e SOM
+  function iniciarVideo() {
+    if (!VIDEO_ID) return;
+
+    // Monta src com autoplay=1 e mute=0 (com som, pois foi gesto do usuário)
+    var src = 'https://www.youtube.com/embed/' + VIDEO_ID
+      + '?autoplay=1&mute=0&controls=0&disablekb=1&fs=0&rel=0'
+      + '&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=0';
+
+    document.getElementById('yt-iframe').src = src;
+
+    // Some o cover
+    document.getElementById('play-cover').classList.add('hide');
+
+    // Ativa o bloqueador de cliques no iframe
+    document.getElementById('video-block').style.display = 'block';
+
+    // Inicia contagem do CTA
+    ctaTimer = setTimeout(mostrarCTA, CTA_SECS * 1000);
   }
 
   function aplicar(cfg) {
@@ -117,74 +151,23 @@
     document.getElementById('vsl-nota').textContent   = cfg.btn_nota  || DEFAULTS.btn_nota;
     document.title = (cfg.linha1 || DEFAULTS.linha1) + ' ' + (cfg.linha2 || DEFAULTS.linha2);
 
-    var id   = ytId(cfg.video_id || '');
-    ctaSeconds = parseInt(cfg.segundos) || 5;
+    VIDEO_ID  = ytId(cfg.video_id || '') || '';
+    CTA_SECS  = parseInt(cfg.segundos) || 5;
 
-    // Se não tiver vídeo, mostra o CTA após o tempo configurado direto
-    if (!id) {
-      setTimeout(mostrarCTA, ctaSeconds * 1000);
-      // Esconde o cover/spinner pois não tem vídeo
-      document.getElementById('video-cover').classList.add('hide');
-      return;
+    if (!VIDEO_ID) {
+      // Sem vídeo: esconde cover e dispara CTA direto
+      document.getElementById('play-cover').style.display = 'none';
+      setTimeout(mostrarCTA, CTA_SECS * 1000);
     }
-
-    // Cria o player via YT API no div#player
-    ytPlayer = new YT.Player('player', {
-      videoId: id,
-      playerVars: {
-        autoplay:        1,
-        mute:            1,   // começa mudo para burlar autoplay policy
-        controls:        0,
-        disablekb:       1,
-        fs:              0,
-        rel:             0,
-        modestbranding:  1,
-        iv_load_policy:  3,
-        playsinline:     1
-      },
-      events: {
-        onReady: function(e) {
-          // Garante que está reproduzindo
-          e.target.playVideo();
-        },
-        onStateChange: function(e) {
-          // PLAYING (1) — vídeo realmente começou
-          if (e.data === YT.PlayerState.PLAYING && !videoStarted) {
-            videoStarted = true;
-
-            // 1) Remove o cover AGORA que o vídeo está rodando de fato
-            document.getElementById('video-cover').classList.add('hide');
-
-            // 2) Desmuta após pequena pausa (garante que o frame já apareceu)
-            setTimeout(function() {
-              e.target.unMute();
-              e.target.setVolume(100);
-            }, 300);
-
-            // 3) Inicia contagem do CTA a partir do momento que o vídeo começou
-            ctaTimer = setTimeout(mostrarCTA, ctaSeconds * 1000);
-          }
-
-          // Garante que o vídeo não fique pausado (usuário não tem controles, mas por segurança)
-          if (e.data === YT.PlayerState.PAUSED) {
-            setTimeout(function() { e.target.playVideo(); }, 300);
-          }
-        }
-      }
-    });
   }
 
-  // YT API callback
-  window.onYouTubeIframeAPIReady = function() {
-    fetch(SB_URL + '/rest/v1/vsl_config?id=eq.1&select=*', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(rows) { aplicar(rows && rows.length ? rows[0] : DEFAULTS); })
-    .catch(function() { aplicar(DEFAULTS); });
-  };
+  fetch(SB_URL + '/rest/v1/vsl_config?id=eq.1&select=*', {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(rows) { aplicar(rows && rows.length ? rows[0] : DEFAULTS); })
+  .catch(function() { aplicar(DEFAULTS); });
 </script>
-<script src="https://www.youtube.com/iframe_api"></script>
 
 </body>
 </html>
