@@ -1,1 +1,494 @@
-obrigado.html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin — Delivery Lucrativo VSL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #E8220A;
+      --orange: #FF6B00;
+      --dark: #0D0D0D;
+      --panel: #161616;
+      --card: #1E1E1E;
+      --border: #2A2A2A;
+      --text: #F0F0F0;
+      --muted: #888;
+      --green: #22C55E;
+    }
+
+    body { background: var(--dark); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 6px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: .15s; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+    .btn-primary { background: linear-gradient(135deg, var(--red), var(--orange)); color: #fff; }
+    .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { opacity: .9; }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width:720px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, rgba(232,34,10,.2), rgba(255,107,0,.2));
+      border: 1px solid rgba(255,107,0,.3);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+    .card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; color: var(--text); }
+    .card-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* ── FIELD ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .field input, .field textarea {
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      transition: border-color .15s;
+      width: 100%;
+      resize: vertical;
+    }
+    .field input:focus, .field textarea:focus { outline: none; border-color: var(--orange); }
+    .field textarea { min-height: 90px; }
+    .field small { font-size: 11px; color: #555; }
+
+    /* ── FULL WIDTH CARD ── */
+    .card-full { grid-column: 1 / -1; }
+
+    /* ── VIDEO PREVIEW ── */
+    .video-preview-wrap {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #000;
+      margin-top: 8px;
+    }
+    .video-preview-wrap::before { content: ''; display: block; padding-top: 56.25%; }
+    .video-preview-wrap iframe { position: absolute; top:0; left:0; width:100%; height:100%; border:none; }
+
+    /* ── BULLETS EDITOR ── */
+    .bullets-editor { display: flex; flex-direction: column; gap: 10px; }
+    .bullet-row { display: flex; gap: 8px; align-items: center; }
+    .bullet-row input { flex: 1; }
+    .btn-remove {
+      background: transparent;
+      border: 1px solid #333;
+      color: #666;
+      border-radius: 6px;
+      width: 34px; height: 34px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: .15s;
+    }
+    .btn-remove:hover { border-color: var(--red); color: var(--red); }
+    .btn-add-bullet {
+      background: transparent;
+      border: 1px dashed #333;
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      transition: .15s;
+      margin-top: 4px;
+    }
+    .btn-add-bullet:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 14px 22px;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin: 28px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-bar {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 13px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">Admin</span>
+    Delivery Lucrativo — Painel VSL
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="openPreview()">👁 Visualizar</button>
+    <button class="btn btn-primary" onclick="saveConfig()">💾 Salvar Alterações</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="status-bar">✅ Alterações salvas aqui aparecem automaticamente na página index.html</div>
+
+  <!-- ─── VÍDEO ─── -->
+  <div class="section-label">🎬 Vídeo Principal</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🔗</span><span class="card-title">ID do Vídeo YouTube</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>YouTube Video ID</label>
+          <input type="text" id="videoId" placeholder="Ex: dQw4w9WgXcQ">
+          <small>Cole só o ID do vídeo — o código que aparece após ?v= no link do YouTube</small>
+        </div>
+        <button class="btn btn-outline" onclick="previewVideo()">▶ Pré-visualizar</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">👁</span><span class="card-title">Preview do Vídeo</span></div>
+      <div class="card-body">
+        <div class="video-preview-wrap">
+          <iframe id="video-preview" src="" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TOPO ─── -->
+  <div class="section-label">📢 Textos do Topo</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📌</span><span class="card-title">Barra Superior & Eyebrow</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Barra de urgência (topo)</label>
+          <input type="text" id="topbarText" placeholder="🔥 ATENÇÃO: Vagas Limitadas...">
+        </div>
+        <div class="field">
+          <label>Eyebrow (badge acima do título)</label>
+          <input type="text" id="eyebrowText" placeholder="Método Exclusivo">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🏆</span><span class="card-title">Título Principal & Subtítulo</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Título H1 (use &lt;span&gt; para laranja)</label>
+          <textarea id="heroTitle">Descubra Como <span>Faturar R$1.000</span><br>Por Dia com Delivery</textarea>
+        </div>
+        <div class="field">
+          <label>Subtítulo do Hero</label>
+          <textarea id="heroSubtitle">Assista o vídeo abaixo até o final e veja como pessoas comuns estão construindo uma renda de 5 dígitos por mês com delivery.</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── COPY ─── -->
+  <div class="section-label">✍️ Texto de Vendas</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📝</span><span class="card-title">Headline & Parágrafos</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Título da Seção de Copy</label>
+          <textarea id="copyTitle">Se Você Quer <span>Liberdade Financeira</span>,<br>Este é o Seu Momento</textarea>
+        </div>
+        <div class="field">
+          <label>Parágrafo 1</label>
+          <textarea id="copyP1" style="min-height:120px">Eu sei que você já tentou outras formas de ganhar dinheiro. Talvez já tenha ouvido promessas vazias...<br><br><strong>Mas o mercado de delivery é diferente.</strong></textarea>
+        </div>
+        <div class="field">
+          <label>Caixa de Destaque (highlight)</label>
+          <textarea id="highlightBox">💡 <strong>Fato:</strong> O mercado de delivery no Brasil movimentou mais de <strong>R$ 50 bilhões</strong> em 2023.</textarea>
+        </div>
+        <div class="field">
+          <label>Parágrafo 2</label>
+          <textarea id="copyP2">No meu curso, eu te mostro <strong>passo a passo</strong> como montar, estruturar e escalar um negócio de delivery.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-icon">✅</span><span class="card-title">Bullets (O que o aluno aprende)</span></div>
+      <div class="card-body">
+        <div class="bullets-editor" id="bullets-editor"></div>
+        <button class="btn-add-bullet" onclick="addBullet()">+ Adicionar item</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── GARANTIA & CTA ─── -->
+  <div class="section-label">🛡️ Garantia & Oferta</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🛡️</span><span class="card-title">Garantia</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Título da Garantia</label>
+          <input type="text" id="guaranteeTitle" placeholder="Garantia de 7 Dias">
+        </div>
+        <div class="field">
+          <label>Texto da Garantia</label>
+          <textarea id="guaranteeText">Se você assistir o curso e achar que não vale cada centavo, eu devolvo 100% do seu dinheiro.</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">💰</span><span class="card-title">Preço & Botão</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Texto acima do preço</label>
+          <input type="text" id="ctaAbove" placeholder="Está pronto para mudar sua vida?">
+        </div>
+        <div class="field">
+          <label>Preço riscado (De)</label>
+          <input type="text" id="priceFrom" placeholder="De R$ 497,00">
+        </div>
+        <div class="field">
+          <label>Valor atual (só o número)</label>
+          <input type="text" id="priceValue" placeholder="197">
+        </div>
+        <div class="field">
+          <label>Nota abaixo do preço</label>
+          <input type="text" id="priceNote" placeholder="Pagamento único · Acesso imediato">
+        </div>
+        <div class="field">
+          <label>Texto do botão CTA</label>
+          <input type="text" id="ctaBtnText" placeholder="QUERO FATURAR R$1.000 POR DIA →">
+        </div>
+        <div class="field">
+          <label>Link da Kiwify (URL completa)</label>
+          <input type="url" id="ctaLink" placeholder="https://pay.kiwify.com.br/SEU_LINK">
+        </div>
+        <div class="field">
+          <label>Texto abaixo do botão</label>
+          <input type="text" id="ctaBelow" placeholder="🔒 Compra 100% segura · Acesso imediato">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── OUTROS ─── -->
+  <div class="section-label">⚙️ Outros</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header"><span class="card-icon">📄</span><span class="card-title">Título da Aba & Rodapé</span></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Título da página (aba do navegador)</label>
+          <input type="text" id="pageTitle" placeholder="Descubra Como Faturar R$1.000 Por Dia...">
+        </div>
+        <div class="field">
+          <label>Texto do Rodapé</label>
+          <input type="text" id="footerText" placeholder="© 2025 Delivery Lucrativo · Todos os direitos reservados">
+        </div>
+        <div class="field">
+          <label>Label "Assista até o final"</label>
+          <input type="text" id="watchLabel" placeholder="👆 Assista o vídeo completo antes de continuar">
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-icon">🚀</span><span class="card-title">Ações Rápidas</span></div>
+      <div class="card-body">
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px" onclick="saveConfig()">💾 Salvar Tudo</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;margin-top:4px" onclick="openPreview()">👁 Abrir VSL em nova aba</button>
+        <button class="btn btn-outline" style="width:100%;justify-content:center;padding:14px;margin-top:4px;border-color:#333;color:#555" onclick="resetConfig()">🗑 Resetar para padrão</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Configurações salvas com sucesso!</div>
+
+<script>
+  const DEFAULT_BULLETS = [
+    'Como escolher o nicho certo de delivery para a sua cidade',
+    'O sistema de precificação que garante margem de lucro real',
+    'Como atrair clientes todos os dias com ou sem anúncios pagos',
+    'A estratégia de fidelização que faz o cliente pedir de novo e de novo',
+    'Como escalar para R$1.000/dia com uma operação enxuta e lucrativa',
+    'Suporte direto comigo para tirar suas dúvidas ao longo do processo'
+  ];
+
+  const FIELDS = [
+    'videoId','topbarText','eyebrowText','heroTitle','heroSubtitle',
+    'copyTitle','copyP1','highlightBox','copyP2',
+    'guaranteeTitle','guaranteeText',
+    'ctaAbove','priceFrom','priceValue','priceNote','ctaBtnText','ctaLink','ctaBelow',
+    'pageTitle','footerText','watchLabel'
+  ];
+
+  // ── BULLETS ──
+  function renderBullets(bullets) {
+    const ed = document.getElementById('bullets-editor');
+    ed.innerHTML = '';
+    bullets.forEach((b, i) => {
+      const row = document.createElement('div');
+      row.className = 'bullet-row';
+      row.innerHTML = `<input type="text" value="${b.replace(/"/g,'&quot;')}" placeholder="Item ${i+1}">
+        <button class="btn-remove" onclick="removeBullet(${i})">×</button>`;
+      ed.appendChild(row);
+    });
+  }
+
+  function getBullets() {
+    return [...document.querySelectorAll('.bullet-row input')].map(i => i.value).filter(Boolean);
+  }
+
+  function addBullet() {
+    const current = getBullets();
+    current.push('');
+    renderBullets(current);
+    document.querySelectorAll('.bullet-row input')[current.length - 1].focus();
+  }
+
+  function removeBullet(idx) {
+    const b = getBullets();
+    b.splice(idx, 1);
+    renderBullets(b);
+  }
+
+  // ── SAVE ──
+  function saveConfig() {
+    const cfg = {};
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) cfg[id] = el.value;
+    });
+    cfg.bullets = getBullets();
+    localStorage.setItem('vsl_config', JSON.stringify(cfg));
+    showToast('✅ Configurações salvas!');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── LOAD ──
+  function loadConfig() {
+    const cfg = JSON.parse(localStorage.getItem('vsl_config') || '{}');
+    FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && cfg[id] !== undefined) el.value = cfg[id];
+    });
+    renderBullets(cfg.bullets || DEFAULT_BULLETS);
+  }
+
+  function resetConfig() {
+    if (!confirm('Tem certeza? Isso apaga todas as suas edições.')) return;
+    localStorage.removeItem('vsl_config');
+    loadConfig();
+    showToast('🗑 Resetado para o padrão');
+  }
+
+  // ── VIDEO PREVIEW ──
+  function previewVideo() {
+    const id = document.getElementById('videoId').value.trim();
+    if (!id) { showToast('⚠️ Cole o ID do vídeo primeiro'); return; }
+    document.getElementById('video-preview').src =
+      'https://www.youtube.com/embed/' + id + '?rel=0&modestbranding=1';
+  }
+
+  function openPreview() {
+    saveConfig();
+    window.open('index.html', '_blank');
+  }
+
+  // ── INIT ──
+  loadConfig();
+</script>
+</body>
+</html>
