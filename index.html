@@ -9,42 +9,84 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --red: #E8220A; --orange: #FF6B00; --gold: #FFD700; --dark: #0A0A0A; }
     html, body { height: 100%; background: var(--dark); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
-    .topbar { background: linear-gradient(90deg, var(--red), var(--orange)); text-align: center; padding: 9px 16px; font-weight: 700; font-size: 13px; letter-spacing: 0.3px; animation: pulse-bar 2s ease-in-out infinite; }
+
+    .topbar {
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      text-align: center; padding: 9px 16px;
+      font-weight: 700; font-size: 13px; letter-spacing: 0.3px;
+      animation: pulse-bar 2s ease-in-out infinite;
+    }
     @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:.85} }
+
     .hero { text-align: center; padding: 28px 20px 16px; }
     .hero h1 { font-weight: 900; font-size: clamp(24px, 4.5vw, 48px); line-height: 1.15; color: #fff; }
-    .hero h1 span { background: linear-gradient(90deg, var(--orange), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
     .video-section { max-width: 820px; margin: 0 auto; padding: 16px 16px 0; }
     .video-wrapper {
       position: relative; border-radius: 8px; overflow: hidden;
       box-shadow: 0 0 60px rgba(232,34,10,0.4), 0 0 120px rgba(255,107,0,0.15);
       border: 2px solid rgba(255,107,0,0.35); background: #000;
     }
+    /* Mantém proporção 16:9 */
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
-    .video-wrapper iframe,
-    .video-wrapper #vsl-player {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+
+    /* O iframe criado via JS fica absolutamente posicionado */
+    .video-wrapper iframe {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; border: none;
+      z-index: 10;
     }
-    #vsl-player iframe { width: 100%; height: 100%; border: none; }
-    /* Cover preto — esconde TUDO do player enquanto inicializa */
+
+    /* Cover preto — esconde tudo enquanto o iframe não carregou */
     .video-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       z-index: 30; background: #000;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.6s ease;
       pointer-events: none;
     }
     .video-cover.hide { opacity: 0; }
-    /* Bloqueia qualquer clique no player para sempre */
+
+    /* Div transparente acima do iframe — bloqueia cliques para sempre */
     .video-block {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 20; cursor: default;
+      z-index: 40; cursor: default;
     }
-    .cta-wrap { text-align: center; padding: 28px 20px 40px; display: none; animation: fadeUp .6s ease forwards; }
+
+    /* Mensagem de erro se não houver vídeo configurado */
+    .video-placeholder {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 12px; color: #555; font-size: 14px; font-weight: 700;
+      z-index: 5;
+    }
+    .video-placeholder svg { opacity: .3; }
+
+    .cta-wrap {
+      text-align: center; padding: 28px 20px 40px;
+      display: none;
+      animation: fadeUp .6s ease forwards;
+    }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    .btn-cta { display: inline-block; background: linear-gradient(135deg, var(--red), var(--orange)); color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(16px, 2.5vw, 22px); text-decoration: none; padding: 20px 52px; border-radius: 6px; letter-spacing: 0.3px; animation: glow-btn 2.2s ease-in-out infinite; transition: transform .15s; }
-    @keyframes glow-btn { 0%,100%{box-shadow:0 8px 32px rgba(255,107,0,0.45)} 50%{box-shadow:0 8px 52px rgba(255,107,0,0.8),0 0 80px rgba(232,34,10,0.35)} }
+
+    .btn-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: clamp(16px, 2.5vw, 22px); text-decoration: none;
+      padding: 20px 52px; border-radius: 6px; letter-spacing: 0.3px;
+      animation: glow-btn 2.2s ease-in-out infinite; transition: transform .15s;
+    }
+    @keyframes glow-btn {
+      0%,100%{box-shadow:0 8px 32px rgba(255,107,0,0.45)}
+      50%{box-shadow:0 8px 52px rgba(255,107,0,0.8),0 0 80px rgba(232,34,10,0.35)}
+    }
     .btn-cta:hover { transform: translateY(-2px) scale(1.02); }
     .cta-note { margin-top: 12px; font-size: 12px; color: #777; font-weight: 600; }
+
     @media(max-width:600px){ .btn-cta{ padding:18px 28px; width:100%; max-width:340px; } }
   </style>
 </head>
@@ -53,15 +95,24 @@
 <div class="topbar" id="vsl-topbar">🔥 ATENÇÃO: Vagas Limitadas — Garanta Sua Entrada Agora!</div>
 
 <section class="hero">
-  <h1><span id="vsl-linha1">Descubra Como Faturar R$1.000</span><br><span id="vsl-linha2">Por Dia com Delivery</span></h1>
+  <h1>
+    <span id="vsl-linha1">Descubra Como Faturar R$1.000</span><br>
+    <span id="vsl-linha2">Por Dia com Delivery</span>
+  </h1>
 </section>
 
 <section class="video-section">
-  <div class="video-wrapper">
-    <div id="vsl-player"></div>
-    <!-- Cover preto: esconde o player enquanto inicializa -->
+  <div class="video-wrapper" id="video-wrapper">
+    <!-- placeholder enquanto carrega -->
+    <div class="video-placeholder" id="video-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/>
+      </svg>
+      <span>Carregando vídeo...</span>
+    </div>
+    <!-- Cover preto removido após carregamento -->
     <div class="video-cover" id="video-cover"></div>
-    <!-- Bloqueia cliques no player para sempre -->
+    <!-- Bloqueia cliques no player -->
     <div class="video-block"></div>
   </div>
 </section>
@@ -71,8 +122,6 @@
   <p class="cta-note" id="vsl-nota">🔒 Compra 100% segura · Acesso imediato após pagamento</p>
 </div>
 
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
   var SB_URL = 'https://oijcggqfcgjkgcaymjqx.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pamNnZ3FmY2dqa2djYXltanF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDE0NzcsImV4cCI6MjA4ODMxNzQ3N30.URV7NROQ0wAGG_GzrS2yn2Kksxaefy4v4JJ49yRW51A';
@@ -88,12 +137,7 @@
     segundos:  5
   };
 
-  var ytPlayer = null;
-  var videoIdGlobal = null;
-  var secsGlobal = 5;
-  var ytApiReady = false;
-  var configReady = false;
-
+  /* ── Extrai ID do YouTube de URL ou ID puro ── */
   function ytId(input) {
     if (!input) return null;
     input = input.trim();
@@ -103,54 +147,48 @@
     return null;
   }
 
-  // Chamado pela API do YouTube quando estiver pronta
-  function onYouTubeIframeAPIReady() {
-    ytApiReady = true;
-    tentarIniciar();
+  /* ── Injeta o iframe diretamente no wrapper ── */
+  function criarPlayer(videoId) {
+    var wrapper = document.getElementById('video-wrapper');
+    var placeholder = document.getElementById('video-placeholder');
+
+    // Remove placeholder
+    if (placeholder) placeholder.style.display = 'none';
+
+    // Monta URL de embed com autoplay e mute (obrigatório em browsers modernos)
+    var src = 'https://www.youtube.com/embed/' + videoId
+            + '?autoplay=1&mute=1&controls=0&disablekb=1&fs=0'
+            + '&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1'
+            + '&enablejsapi=0';  // sem API JS — iframe puro, mais compatível
+
+    // Cria iframe e insere ANTES do cover (z-index 10, abaixo do cover 30)
+    var iframe = document.createElement('iframe');
+    iframe.src = src;
+    iframe.setAttribute('allow', 'autoplay; encrypted-media');
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.title = 'VSL';
+
+    // Insere antes do cover para ficar atrás dele inicialmente
+    var cover = document.getElementById('video-cover');
+    wrapper.insertBefore(iframe, cover);
+
+    // Após 3s o vídeo já está tocando → remove cover
+    setTimeout(function() {
+      cover.classList.add('hide');
+
+      // Após o cover desaparecer (0.6s de transição), tenta desmutar via postMessage
+      // Funciona em alguns browsers; se não funcionar, o vídeo continua (mudo é melhor que preto)
+      setTimeout(function() {
+        try {
+          iframe.contentWindow.postMessage(
+            '{"event":"command","func":"unMute","args":""}', '*'
+          );
+        } catch(e) {}
+      }, 700);
+    }, 3000);
   }
 
-  function tentarIniciar() {
-    if (!ytApiReady || !configReady || !videoIdGlobal) return;
-
-    // Cria o player com YT API — autoplay mutado (necessário para browsers modernos)
-    ytPlayer = new YT.Player('vsl-player', {
-      videoId: videoIdGlobal,
-      playerVars: {
-        autoplay:        1,
-        mute:            1,   // mute para autoplay funcionar
-        controls:        0,   // sem barra de controles
-        disablekb:       1,   // sem teclado
-        fs:              0,   // sem fullscreen
-        rel:             0,
-        modestbranding:  1,
-        iv_load_policy:  3,
-        playsinline:     1
-      },
-      events: {
-        onReady: function(e) {
-          e.target.playVideo();
-          // Após 2.5s o vídeo já está tocando — remove o cover e desmuta
-          setTimeout(function() {
-            var cover = document.getElementById('video-cover');
-            cover.classList.add('hide');
-            // Desmuta após o cover sumir (mais 0.5s da transição)
-            setTimeout(function() {
-              if (ytPlayer && ytPlayer.unMute) ytPlayer.unMute();
-            }, 500);
-          }, 2500);
-        },
-        onStateChange: function(e) {
-          // Se o player parar (estado 2 = pausado), retoma automaticamente
-          if (e.data === YT.PlayerState.PAUSED) {
-            setTimeout(function() {
-              if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
-            }, 200);
-          }
-        }
-      }
-    });
-  }
-
+  /* ── Aplica configuração na página ── */
   function aplicar(cfg) {
     document.getElementById('vsl-topbar').textContent = cfg.topbar    || DEFAULTS.topbar;
     document.getElementById('vsl-linha1').textContent = cfg.linha1    || DEFAULTS.linha1;
@@ -158,22 +196,32 @@
     document.getElementById('vsl-btn').textContent    = cfg.btn_texto || DEFAULTS.btn_texto;
     document.getElementById('vsl-btn').href           = cfg.btn_link  || DEFAULTS.btn_link;
     document.getElementById('vsl-nota').textContent   = cfg.btn_nota  || DEFAULTS.btn_nota;
-    document.title = (cfg.linha1 || DEFAULTS.linha1) + ' ' + (cfg.linha2 || DEFAULTS.linha2);
+    document.title = (cfg.linha1 || DEFAULTS.linha1) + ' — ' + (cfg.linha2 || DEFAULTS.linha2);
 
-    videoIdGlobal = ytId(cfg.video_id || '');
-    secsGlobal    = parseInt(cfg.segundos) || 5;
-    configReady   = true;
-    tentarIniciar();
+    var id   = ytId(cfg.video_id || '');
+    var secs = parseInt(cfg.segundos) || 5;
+
+    if (id) {
+      criarPlayer(id);
+    } else {
+      // Sem vídeo configurado: mostra placeholder com aviso
+      var ph = document.getElementById('video-placeholder');
+      if (ph) {
+        ph.querySelector('span').textContent = 'Nenhum vídeo configurado no painel.';
+        ph.style.display = 'flex';
+      }
+      document.getElementById('video-cover').classList.add('hide');
+    }
 
     // Timer do botão CTA — independente do vídeo
     setTimeout(function() {
       var cta = document.getElementById('cta');
       cta.style.display = 'block';
       cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, secsGlobal * 1000);
+    }, secs * 1000);
   }
 
-  // Carrega config do Supabase
+  /* ── Carrega config do Supabase ── */
   fetch(SB_URL + '/rest/v1/vsl_config?id=eq.1&select=*', {
     headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
   })
