@@ -142,9 +142,16 @@
   <!-- VÍDEO -->
   <div class="section-label">🎬 Vídeo</div>
   <div class="field">
-    <label>ID do vídeo no YouTube</label>
-    <input type="text" id="videoId" placeholder="Ex: dQw4w9WgXcQ">
-    <small>É o código após ?v= no link. youtube.com/watch?v=<strong>ESSE_AQUI</strong></small>
+    <label>Link ou ID do vídeo no YouTube</label>
+    <input type="text" id="videoId" placeholder="Ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ" oninput="atualizarPreview()">
+    <small>Cole o link completo do YouTube ou só o ID do vídeo</small>
+  </div>
+  <div id="preview-wrap" style="display:none;margin-bottom:16px;">
+    <div style="font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Preview do Vídeo</div>
+    <div style="position:relative;border-radius:8px;overflow:hidden;background:#000;border:1px solid #333;">
+      <div style="padding-top:56.25%;"></div>
+      <iframe id="preview-iframe" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe>
+    </div>
   </div>
 
   <!-- TEXTOS -->
@@ -200,12 +207,41 @@
 <script>
   function v(id) { return document.getElementById(id).value; }
 
-  function gerar() {
-    const videoId  = v('videoId').trim()  || 'SEU_VIDEO_ID';
-    const kiwify   = v('btnLink').trim()  || 'https://pay.kiwify.com.br/SEU_LINK';
-    const secs     = parseInt(v('segundos')) || 5;
+  function ytId(input) {
+    input = input.trim();
+    // Link completo: youtube.com/watch?v=ID ou youtu.be/ID ou youtube.com/embed/ID ou shorts
+    var m = input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{11})/);
+    if (m) return m[1];
+    // Se já é só o ID (11 chars alfanuméricos)
+    if (/^[A-Za-z0-9_-]{11}$/.test(input)) return input;
+    return null;
+  }
 
-    const code = `<!DOCTYPE html>
+  function atualizarPreview() {
+    var input = v('videoId');
+    var id = ytId(input);
+    var wrap = document.getElementById('preview-wrap');
+    var iframe = document.getElementById('preview-iframe');
+    if (id) {
+      iframe.src = 'https://www.youtube.com/embed/' + id + '?rel=0&modestbranding=1';
+      wrap.style.display = 'block';
+    } else {
+      iframe.src = '';
+      wrap.style.display = 'none';
+    }
+  }
+
+  function gerar() {
+    var rawVideo = v('videoId').trim();
+    var videoId = ytId(rawVideo) || 'SEU_VIDEO_ID';
+    if (rawVideo && !ytId(rawVideo)) {
+      toast('⚠️ Link do YouTube inválido! Verifique o campo de vídeo.');
+      return;
+    }
+    var kiwify   = v('btnLink').trim()  || 'https://pay.kiwify.com.br/SEU_LINK';
+    var secs     = parseInt(v('segundos')) || 5;
+
+    var code = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
