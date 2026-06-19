@@ -124,7 +124,7 @@
 
     <div class="video-block" id="video-block"></div>
 
-    <button class="play-cover" id="play-cover" type="button" ontouchend="iniciarVideo(event)" onclick="iniciarVideo(event)">
+    <button class="play-cover" id="play-cover" type="button" onclick="iniciarVideo(event)">
       <img class="thumb" id="thumb-img" src="" alt="">
       <div class="overlay"></div>
       <div class="play-btn">
@@ -187,39 +187,55 @@
     if (typeof YT !== 'undefined' && YT.Player) {
       criarPlayer();
     } else {
-      // API ainda não carregou — aguarda
+      // API ainda não carregou — aguarda callback
       window._ytReady = criarPlayer;
     }
   }
 
   function criarPlayer() {
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     ytPlayer = new YT.Player('player-container', {
       videoId: VIDEO_ID,
       playerVars: {
         autoplay:       1,
-        mute:           0,
+        // iOS exige mute:1 para autoplay inline funcionar sem redirecionar pro app
+        mute:           isMobile ? 1 : 0,
         controls:       0,
         disablekb:      1,
         fs:             0,
         rel:            0,
         modestbranding: 1,
         iv_load_policy: 3,
-        playsinline:    1
+        playsinline:    1   // CRÍTICO: impede fullscreen automático no iOS
       },
       events: {
         onReady: function(e) {
           e.target.playVideo();
-          // Ativa bloqueador após 1s
+
+          // No mobile: após iniciar mutado, desmuta após 800ms (usuário já interagiu)
+          if (isMobile) {
+            setTimeout(function() {
+              if (ytPlayer && ytPlayer.unMute) {
+                ytPlayer.unMute();
+                ytPlayer.setVolume(100);
+              }
+            }, 800);
+          }
+
+          // Ativa bloqueador de clique após 1s
           setTimeout(function() {
             document.getElementById('video-block').style.display = 'block';
           }, 1000);
-          // CTA
+
+          // Mostra CTA após X segundos
           setTimeout(mostrarCTA, CTA_SECS * 1000);
         },
         onStateChange: function(e) {
-          // Impede pause
+          // Impede pause pelo usuário
           if (e.data === YT.PlayerState.PAUSED) {
-            setTimeout(function() { e.target.playVideo(); }, 200);
+            setTimeout(function() {
+              if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+            }, 200);
           }
         }
       }
