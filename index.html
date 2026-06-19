@@ -124,7 +124,7 @@
 
     <div class="video-block" id="video-block"></div>
 
-    <button class="play-cover" id="play-cover" type="button" onclick="iniciarVideo(event)">
+    <button class="play-cover" id="play-cover" type="button">
       <img class="thumb" id="thumb-img" src="" alt="">
       <div class="overlay"></div>
       <div class="play-btn">
@@ -152,11 +152,10 @@
     video_id:'', segundos:5
   };
 
-  var VIDEO_ID  = '';
-  var CTA_SECS  = 5;
-  var ctaShown  = false;
-  var ytPlayer  = null;
-  var clicado   = false;
+  var VIDEO_ID = '';
+  var CTA_SECS = 5;
+  var ctaShown = false;
+  var clicado  = false;
 
   function ytId(input) {
     if (!input) return null;
@@ -175,80 +174,55 @@
     setTimeout(function() { cta.scrollIntoView({ behavior:'smooth', block:'center' }); }, 150);
   }
 
+  // Abordagem: iframe direto injetado no clique do usuário.
+  // Esta é a única forma 100% confiável no iOS/Safari.
+  // A YT IFrame API perde o contexto de "user gesture" no mobile,
+  // fazendo o Safari redirecionar pro app do YouTube.
+  // Injetar o iframe diretamente dentro do handler do clique mantém
+  // o gesto do usuário e o iOS toca inline sem redirecionar.
   function iniciarVideo(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (clicado) return;
+    if (clicado || !VIDEO_ID) return;
     clicado = true;
 
-    // Esconde cover imediatamente
+    // Esconde cover
     document.getElementById('play-cover').classList.add('hide');
 
-    // Cria o player via YT API (única forma confiável no mobile)
-    if (typeof YT !== 'undefined' && YT.Player) {
-      criarPlayer();
-    } else {
-      // API ainda não carregou — aguarda callback
-      window._ytReady = criarPlayer;
-    }
+    // Injeta iframe diretamente — dentro do handler preserva o "user gesture" no iOS
+    var container = document.getElementById('player-container');
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('allow', 'autoplay; encrypted-media');
+    // autoplay=1 + mute=1 + playsinline=1 = toca inline no iOS sem redirecionar
+    iframe.src = 'https://www.youtube.com/embed/' + VIDEO_ID
+      + '?autoplay=1'
+      + '&mute=1'         // iOS exige muted para autoplay inline
+      + '&playsinline=1'  // CRÍTICO: impede fullscreen no iOS
+      + '&controls=0'
+      + '&disablekb=1'
+      + '&fs=0'
+      + '&rel=0'
+      + '&modestbranding=1'
+      + '&iv_load_policy=3'
+      + '&enablejsapi=0'; // sem API = sem overhead, mais rápido no mobile
+    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:none;';
+    container.appendChild(iframe);
+
+    // Ativa bloqueador de clique no vídeo após 1.5s
+    setTimeout(function() {
+      document.getElementById('video-block').style.display = 'block';
+    }, 1500);
+
+    // Mostra CTA após X segundos configurados
+    setTimeout(mostrarCTA, CTA_SECS * 1000);
   }
 
-  function criarPlayer() {
-    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    ytPlayer = new YT.Player('player-container', {
-      videoId: VIDEO_ID,
-      playerVars: {
-        autoplay:       1,
-        // iOS exige mute:1 para autoplay inline funcionar sem redirecionar pro app
-        mute:           isMobile ? 1 : 0,
-        controls:       0,
-        disablekb:      1,
-        fs:             0,
-        rel:            0,
-        modestbranding: 1,
-        iv_load_policy: 3,
-        playsinline:    1   // CRÍTICO: impede fullscreen automático no iOS
-      },
-      events: {
-        onReady: function(e) {
-          e.target.playVideo();
-
-          // No mobile: após iniciar mutado, desmuta após 800ms (usuário já interagiu)
-          if (isMobile) {
-            setTimeout(function() {
-              if (ytPlayer && ytPlayer.unMute) {
-                ytPlayer.unMute();
-                ytPlayer.setVolume(100);
-              }
-            }, 800);
-          }
-
-          // Ativa bloqueador de clique após 1s
-          setTimeout(function() {
-            document.getElementById('video-block').style.display = 'block';
-          }, 1000);
-
-          // Mostra CTA após X segundos
-          setTimeout(mostrarCTA, CTA_SECS * 1000);
-        },
-        onStateChange: function(e) {
-          // Impede pause pelo usuário
-          if (e.data === YT.PlayerState.PAUSED) {
-            setTimeout(function() {
-              if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
-            }, 200);
-          }
-        }
-      }
-    });
-  }
-
-  // Callback da YT API
-  window.onYouTubeIframeAPIReady = function() {
-    if (window._ytReady) {
-      window._ytReady();
-      window._ytReady = null;
-    }
-  };
+  // Registra o clique de forma que funcione em touch e mouse
+  document.addEventListener('DOMContentLoaded', function() {
+    var cover = document.getElementById('play-cover');
+    if (!cover) return;
+    cover.addEventListener('click', iniciarVideo, { passive: false });
+  });
 
   function aplicar(cfg) {
     var linha1 = cfg.linha1 || DEFAULTS.linha1;
@@ -270,12 +244,10 @@
         this.src = 'https://img.youtube.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
         this.onerror = null;
       };
-      // Carrega YT API antecipadamente (já carregada quando clicar)
-      var tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      document.head.appendChild(tag);
     } else {
-      document.getElementById('play-cover').style.display = 'none';
+      // Sem vídeo: esconde cover e mostra CTA direto
+      var cover = document.getElementById('play-cover');
+      if (cover) cover.style.display = 'none';
       setTimeout(mostrarCTA, CTA_SECS * 1000);
     }
   }
