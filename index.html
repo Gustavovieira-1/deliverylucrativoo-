@@ -8,12 +8,24 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --red: #E8220A; --orange: #FF6B00; --gold: #FFD700; --dark: #0A0A0A; }
-    html, body { height: 100%; background: var(--dark); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
-    .topbar { background: linear-gradient(90deg, var(--red), var(--orange)); text-align: center; padding: 9px 16px; font-weight: 700; font-size: 13px; animation: pulse-bar 2s ease-in-out infinite; }
+    html, body { background: var(--dark); color: #fff; font-family: 'Montserrat', sans-serif; overflow-x: hidden; }
+
+    .topbar {
+      background: linear-gradient(90deg, var(--red), var(--orange));
+      text-align: center; padding: 9px 16px; font-weight: 700; font-size: 13px;
+      animation: pulse-bar 2s ease-in-out infinite;
+    }
     @keyframes pulse-bar { 0%,100%{opacity:1} 50%{opacity:.85} }
+
     .hero { text-align: center; padding: 28px 20px 16px; }
-    .hero h1 { font-weight: 900; font-size: clamp(24px, 4.5vw, 48px); line-height: 1.15; }
-    .hero h1 span { background: linear-gradient(90deg, var(--orange), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero h1 {
+      font-weight: 900;
+      font-size: clamp(22px, 4vw, 46px);
+      line-height: 1.2;
+      background: linear-gradient(90deg, var(--orange), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
     .video-section { max-width: 820px; margin: 0 auto; padding: 16px 16px 0; }
     .video-wrapper {
       position: relative; border-radius: 8px; overflow: hidden;
@@ -21,42 +33,71 @@
       border: 2px solid rgba(255,107,0,0.35); background: #000;
     }
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
+
     #yt-iframe {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     }
-    /* Cover clicável que some ao clicar — dispara o autoplay com som */
+
+    /* Cover de play customizado */
     .play-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 30; background: #000; cursor: pointer;
+      z-index: 30; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 16px; transition: opacity 0.5s ease;
+      gap: 16px; transition: opacity 0.4s ease;
+      background: #000;
     }
     .play-cover.hide { opacity: 0; pointer-events: none; }
+
+    /* Thumbnail do vídeo como fundo do cover */
+    .play-cover .thumb {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.6;
+    }
+
     .play-btn {
+      position: relative; z-index: 2;
       width: 80px; height: 80px; border-radius: 50%;
       background: linear-gradient(135deg, var(--red), var(--orange));
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 40px rgba(255,107,0,0.6);
+      box-shadow: 0 0 40px rgba(255,107,0,0.7);
       animation: pulse-play 1.8s ease-in-out infinite;
     }
     .play-btn svg { margin-left: 6px; }
     @keyframes pulse-play {
       0%,100% { box-shadow: 0 0 30px rgba(255,107,0,0.5); transform: scale(1); }
-      50%      { box-shadow: 0 0 60px rgba(255,107,0,0.9); transform: scale(1.07); }
+      50%      { box-shadow: 0 0 70px rgba(255,107,0,1);   transform: scale(1.08); }
     }
-    .play-text { font-size: 14px; font-weight: 700; color: #ccc; letter-spacing: 1px; text-transform: uppercase; }
-    /* Bloqueia cliques no iframe depois que o vídeo inicia */
-    .video-block {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 20; cursor: default; display: none;
+    .play-text {
+      position: relative; z-index: 2;
+      font-size: 13px; font-weight: 700; color: #fff;
+      letter-spacing: 1px; text-transform: uppercase;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
-    .cta-wrap { text-align: center; padding: 28px 20px 40px; display: none; animation: fadeUp .6s ease forwards; }
+
+    .cta-wrap {
+      text-align: center; padding: 28px 20px 40px;
+      display: none; animation: fadeUp .6s ease forwards;
+    }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    .btn-cta { display: inline-block; background: linear-gradient(135deg, var(--red), var(--orange)); color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: clamp(16px, 2.5vw, 22px); text-decoration: none; padding: 20px 52px; border-radius: 6px; animation: glow-btn 2.2s ease-in-out infinite; transition: transform .15s; }
-    @keyframes glow-btn { 0%,100%{box-shadow:0 8px 32px rgba(255,107,0,0.45)} 50%{box-shadow:0 8px 52px rgba(255,107,0,0.8),0 0 80px rgba(232,34,10,0.35)} }
+
+    .btn-cta {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--red), var(--orange));
+      color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 900;
+      font-size: clamp(15px, 2.5vw, 22px); text-decoration: none;
+      padding: 20px 40px; border-radius: 6px;
+      animation: glow-btn 2.2s ease-in-out infinite; transition: transform .15s;
+    }
+    @keyframes glow-btn {
+      0%,100%{box-shadow:0 8px 32px rgba(255,107,0,0.45)}
+      50%{box-shadow:0 8px 52px rgba(255,107,0,0.8),0 0 80px rgba(232,34,10,0.35)}
+    }
     .btn-cta:hover { transform: translateY(-2px) scale(1.02); }
     .cta-note { margin-top: 12px; font-size: 12px; color: #777; font-weight: 600; }
-    @media(max-width:600px){ .btn-cta{ padding:18px 28px; width:100%; max-width:340px; } }
+
+    @media(max-width:600px){
+      .btn-cta { padding: 18px 24px; width: 100%; max-width: 340px; }
+    }
   </style>
 </head>
 <body>
@@ -64,19 +105,23 @@
 <div class="topbar" id="vsl-topbar">🔥 ATENÇÃO: Vagas Limitadas — Garanta Sua Entrada Agora!</div>
 
 <section class="hero">
-  <h1><span id="vsl-linha1">Descubra Como Faturar R$1.000</span><br><span id="vsl-linha2">Por Dia com Delivery</span></h1>
+  <h1 id="vsl-titulo">Descubra Como Faturar R$1.000<br>Por Dia com Delivery</h1>
 </section>
 
 <section class="video-section">
   <div class="video-wrapper">
-    <iframe id="yt-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <iframe id="yt-iframe"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      allowfullscreen
+      playsinline></iframe>
+
     <div class="play-cover" id="play-cover" onclick="iniciarVideo()">
+      <img class="thumb" id="thumb-img" src="" alt="">
       <div class="play-btn">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
       </div>
-      <div class="play-text">▶ Clique para assistir</div>
+      <div class="play-text">▶ Toque para assistir</div>
     </div>
-    <div class="video-block" id="video-block"></div>
   </div>
 </section>
 
@@ -90,19 +135,18 @@
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pamNnZ3FmY2dqa2djYXltanF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NDE0NzcsImV4cCI6MjA4ODMxNzQ3N30.URV7NROQ0wAGG_GzrS2yn2Kksxaefy4v4JJ49yRW51A';
 
   var DEFAULTS = {
-    topbar: '🔥 ATENÇÃO: Vagas Limitadas — Garanta Sua Entrada Agora!',
-    linha1: 'Descubra Como Faturar R$1.000',
-    linha2: 'Por Dia com Delivery',
+    topbar:    '🔥 ATENÇÃO: Vagas Limitadas — Garanta Sua Entrada Agora!',
+    linha1:    'Descubra Como Faturar R$1.000',
+    linha2:    'Por Dia com Delivery',
     btn_texto: 'QUERO FATURAR R$1.000 POR DIA →',
-    btn_link: '#',
-    btn_nota: '🔒 Compra 100% segura · Acesso imediato após pagamento',
-    video_id: '',
-    segundos: 5
+    btn_link:  '#',
+    btn_nota:  '🔒 Compra 100% segura · Acesso imediato após pagamento',
+    video_id:  '',
+    segundos:  5
   };
 
-  var VIDEO_ID  = '';
-  var CTA_SECS  = 5;
-  var ctaTimer  = null;
+  var VIDEO_ID = '';
+  var CTA_SECS = 5;
 
   function ytId(input) {
     if (!input) return null;
@@ -118,44 +162,54 @@
     cta.style.display = 'block';
     setTimeout(function() {
       cta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
+    }, 200);
   }
 
-  // Usuário clica no cover → iframe carrega com autoplay e SOM
   function iniciarVideo() {
     if (!VIDEO_ID) return;
 
-    // Monta src com autoplay=1 e mute=0 (com som, pois foi gesto do usuário)
+    // Controls=1 no mobile é obrigatório para o YouTube permitir play
+    var isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    var controls = isMobile ? 1 : 0;
+
     var src = 'https://www.youtube.com/embed/' + VIDEO_ID
-      + '?autoplay=1&mute=0&controls=0&disablekb=1&fs=0&rel=0'
-      + '&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=0';
+      + '?autoplay=1'
+      + '&mute=0'
+      + '&controls=' + controls
+      + '&rel=0'
+      + '&modestbranding=1'
+      + '&iv_load_policy=3'
+      + '&playsinline=1'
+      + '&fs=0';
 
     document.getElementById('yt-iframe').src = src;
-
-    // Some o cover
     document.getElementById('play-cover').classList.add('hide');
 
-    // Ativa o bloqueador de cliques no iframe
-    document.getElementById('video-block').style.display = 'block';
-
-    // Inicia contagem do CTA
-    ctaTimer = setTimeout(mostrarCTA, CTA_SECS * 1000);
+    // CTA começa a contar a partir do clique do usuário
+    setTimeout(mostrarCTA, CTA_SECS * 1000);
   }
 
   function aplicar(cfg) {
-    document.getElementById('vsl-topbar').textContent = cfg.topbar    || DEFAULTS.topbar;
-    document.getElementById('vsl-linha1').textContent = cfg.linha1    || DEFAULTS.linha1;
-    document.getElementById('vsl-linha2').textContent = cfg.linha2    || DEFAULTS.linha2;
-    document.getElementById('vsl-btn').textContent    = cfg.btn_texto || DEFAULTS.btn_texto;
-    document.getElementById('vsl-btn').href           = cfg.btn_link  || DEFAULTS.btn_link;
-    document.getElementById('vsl-nota').textContent   = cfg.btn_nota  || DEFAULTS.btn_nota;
-    document.title = (cfg.linha1 || DEFAULTS.linha1) + ' ' + (cfg.linha2 || DEFAULTS.linha2);
+    var topbar = cfg.topbar || DEFAULTS.topbar;
+    var linha1 = cfg.linha1 || DEFAULTS.linha1;
+    var linha2 = cfg.linha2 || DEFAULTS.linha2;
 
-    VIDEO_ID  = ytId(cfg.video_id || '') || '';
-    CTA_SECS  = parseInt(cfg.segundos) || 5;
+    document.getElementById('vsl-topbar').textContent = topbar;
+    // Título em um único h1 com <br> — sem spans duplicados
+    document.getElementById('vsl-titulo').innerHTML = linha1 + '<br>' + linha2;
+    document.getElementById('vsl-btn').textContent  = cfg.btn_texto || DEFAULTS.btn_texto;
+    document.getElementById('vsl-btn').href         = cfg.btn_link  || DEFAULTS.btn_link;
+    document.getElementById('vsl-nota').textContent = cfg.btn_nota  || DEFAULTS.btn_nota;
+    document.title = linha1 + ' ' + linha2;
 
-    if (!VIDEO_ID) {
-      // Sem vídeo: esconde cover e dispara CTA direto
+    VIDEO_ID = ytId(cfg.video_id || '') || '';
+    CTA_SECS = parseInt(cfg.segundos) || 5;
+
+    if (VIDEO_ID) {
+      // Coloca thumbnail como fundo do cover para não ficar tela preta
+      document.getElementById('thumb-img').src =
+        'https://img.youtube.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
+    } else {
       document.getElementById('play-cover').style.display = 'none';
       setTimeout(mostrarCTA, CTA_SECS * 1000);
     }
