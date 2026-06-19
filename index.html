@@ -155,7 +155,9 @@
   var VIDEO_ID = '';
   var CTA_SECS = 5;
   var ctaShown = false;
+  var ytPlayer = null;
   var clicado  = false;
+  var playerPronto = false;
 
   function ytId(input) {
     if (!input) return null;
@@ -174,54 +176,60 @@
     setTimeout(function() { cta.scrollIntoView({ behavior:'smooth', block:'center' }); }, 150);
   }
 
-  // Abordagem: iframe direto injetado no clique do usuário.
-  // Esta é a única forma 100% confiável no iOS/Safari.
-  // A YT IFrame API perde o contexto de "user gesture" no mobile,
-  // fazendo o Safari redirecionar pro app do YouTube.
-  // Injetar o iframe diretamente dentro do handler do clique mantém
-  // o gesto do usuário e o iOS toca inline sem redirecionar.
-  function iniciarVideo(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (clicado || !VIDEO_ID) return;
-    clicado = true;
+  // ESTRATÉGIA CORRETA PARA IOS COM SOM:
+  // 1. Criar o player pausado logo que a API carrega (autoplay:0, mute:0)
+  // 2. No clique do usuário, chamar playVideo() diretamente
+  // O iOS permite som porque o playVideo() é chamado DENTRO do handler do toque,
+  // e o player já existe — não há delay de criação que quebre o "user gesture"
 
-    // Esconde cover
+  window.onYouTubeIframeAPIReady = function() {
+    if (!VIDEO_ID) return;
+    ytPlayer = new YT.Player('player-container', {
+      videoId: VIDEO_ID,
+      playerVars: {
+        autoplay:       0,   // começa pausado
+        mute:           0,   // sem mute — o play virá do gesto do usuário
+        controls:       0,
+        disablekb:      1,
+        fs:             0,
+        rel:            0,
+        modestbranding: 1,
+        iv_load_policy: 3,
+        playsinline:    1    // impede fullscreen no iOS
+      },
+      events: {
+        onReady: function() {
+          playerPronto = true;
+          // Se o usuário clicou antes do player estar pronto, tocar agora
+          if (clicado) dispararPlay();
+        },
+        onStateChange: function(e) {
+          if (e.data === YT.PlayerState.PAUSED && clicado) {
+            setTimeout(function() { ytPlayer.playVideo(); }, 200);
+          }
+        }
+      }
+    });
+  };
+
+  function dispararPlay() {
     document.getElementById('play-cover').classList.add('hide');
-
-    // Injeta iframe diretamente — dentro do handler preserva o "user gesture" no iOS
-    var container = document.getElementById('player-container');
-    var iframe = document.createElement('iframe');
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('allow', 'autoplay; encrypted-media');
-    // autoplay=1 + mute=1 + playsinline=1 = toca inline no iOS sem redirecionar
-    iframe.src = 'https://www.youtube.com/embed/' + VIDEO_ID
-      + '?autoplay=1'
-      + '&mute=1'         // iOS exige muted para autoplay inline
-      + '&playsinline=1'  // CRÍTICO: impede fullscreen no iOS
-      + '&controls=0'
-      + '&disablekb=1'
-      + '&fs=0'
-      + '&rel=0'
-      + '&modestbranding=1'
-      + '&iv_load_policy=3'
-      + '&enablejsapi=0'; // sem API = sem overhead, mais rápido no mobile
-    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:none;';
-    container.appendChild(iframe);
-
-    // Ativa bloqueador de clique no vídeo após 1.5s
+    ytPlayer.playVideo();
     setTimeout(function() {
       document.getElementById('video-block').style.display = 'block';
-    }, 1500);
-
-    // Mostra CTA após X segundos configurados
+    }, 1000);
     setTimeout(mostrarCTA, CTA_SECS * 1000);
   }
 
-  // Registra o clique de forma que funcione em touch e mouse
-  document.addEventListener('DOMContentLoaded', function() {
-    var cover = document.getElementById('play-cover');
-    if (!cover) return;
-    cover.addEventListener('click', iniciarVideo, { passive: false });
+  // Handler do clique — simples e direto
+  document.getElementById('play-cover').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (clicado) return;
+    clicado = true;
+    if (playerPronto) {
+      dispararPlay();  // player pronto: toca com som imediatamente
+    }
+    // Se não estiver pronto ainda, onReady() vai chamar dispararPlay()
   });
 
   function aplicar(cfg) {
@@ -244,10 +252,12 @@
         this.src = 'https://img.youtube.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
         this.onerror = null;
       };
+      // Carrega a YT API — vai chamar onYouTubeIframeAPIReady quando pronta
+      var tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
     } else {
-      // Sem vídeo: esconde cover e mostra CTA direto
-      var cover = document.getElementById('play-cover');
-      if (cover) cover.style.display = 'none';
+      document.getElementById('play-cover').style.display = 'none';
       setTimeout(mostrarCTA, CTA_SECS * 1000);
     }
   }
