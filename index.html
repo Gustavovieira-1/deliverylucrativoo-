@@ -32,17 +32,22 @@
     }
     .video-wrapper::before { content: ''; display: block; padding-top: 56.25%; }
 
-    #yt-iframe {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+    /* O YT API vai criar o iframe aqui dentro */
+    #player-container {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    }
+    #player-container iframe {
+      width: 100% !important; height: 100% !important;
+      position: absolute; top: 0; left: 0; border: none;
     }
 
-    /* Bloqueador — só ativo após o vídeo iniciar */
+    /* Bloqueador de interação — ativo após vídeo iniciar */
     .video-block {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       z-index: 10; cursor: default; display: none;
     }
 
-    /* Cover — botão ocupa 100% para garantir toque em qualquer área */
+    /* Cover clicável */
     .play-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       z-index: 20;
@@ -50,6 +55,7 @@
       gap: 18px; transition: opacity 0.4s ease;
       background: none; border: none; padding: 0; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .play-cover .thumb {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -114,13 +120,11 @@
 
 <section class="video-section">
   <div class="video-wrapper">
-    <iframe id="yt-iframe" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <div id="player-container"></div>
 
-    <!-- Ativado APÓS o vídeo iniciar para bloquear pause/seek -->
     <div class="video-block" id="video-block"></div>
 
-    <!-- BUTTON (não div) garante toque no iOS/Android -->
-    <button class="play-cover" id="play-cover" onclick="iniciarVideo()" type="button">
+    <button class="play-cover" id="play-cover" type="button" ontouchend="iniciarVideo(event)" onclick="iniciarVideo(event)">
       <img class="thumb" id="thumb-img" src="" alt="">
       <div class="overlay"></div>
       <div class="play-btn">
@@ -148,9 +152,11 @@
     video_id:'', segundos:5
   };
 
-  var VIDEO_ID = '';
-  var CTA_SECS = 5;
-  var ctaShown = false;
+  var VIDEO_ID  = '';
+  var CTA_SECS  = 5;
+  var ctaShown  = false;
+  var ytPlayer  = null;
+  var clicado   = false;
 
   function ytId(input) {
     if (!input) return null;
@@ -169,42 +175,64 @@
     setTimeout(function() { cta.scrollIntoView({ behavior:'smooth', block:'center' }); }, 150);
   }
 
-  function iniciarVideo() {
-    if (!VIDEO_ID) return;
+  function iniciarVideo(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (clicado) return;
+    clicado = true;
 
-    // Some cover imediatamente — feedback instantâneo ao toque
-    var cover = document.getElementById('play-cover');
-    cover.classList.add('hide');
+    // Esconde cover imediatamente
+    document.getElementById('play-cover').classList.add('hide');
 
-    // Monta src — com som (gesto do usuário garante isso)
-    var src = 'https://www.youtube.com/embed/' + VIDEO_ID
-      + '?autoplay=1&mute=0&controls=0'
-      + '&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&fs=0'
-      + '&enablejsapi=1';
+    // Cria o player via YT API (única forma confiável no mobile)
+    if (typeof YT !== 'undefined' && YT.Player) {
+      criarPlayer();
+    } else {
+      // API ainda não carregou — aguarda
+      window._ytReady = criarPlayer;
+    }
+  }
 
-    document.getElementById('yt-iframe').src = src;
-
-    // Ativa bloqueador de pause/seek após 800ms (tempo de carregar)
-    setTimeout(function() {
-      document.getElementById('video-block').style.display = 'block';
-    }, 800);
-
-    // CTA
-    setTimeout(mostrarCTA, CTA_SECS * 1000);
-
-    // Anti-pause via postMessage
-    window.addEventListener('message', function(e) {
-      var data;
-      try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch(err) { return; }
-      var state = (data.info && data.info.playerState != null) ? data.info.playerState : data.info;
-      if (state === 2) {
-        var iframe = document.getElementById('yt-iframe');
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage(JSON.stringify({ event:'command', func:'playVideo', args:[] }), '*');
+  function criarPlayer() {
+    ytPlayer = new YT.Player('player-container', {
+      videoId: VIDEO_ID,
+      playerVars: {
+        autoplay:       1,
+        mute:           0,
+        controls:       0,
+        disablekb:      1,
+        fs:             0,
+        rel:            0,
+        modestbranding: 1,
+        iv_load_policy: 3,
+        playsinline:    1
+      },
+      events: {
+        onReady: function(e) {
+          e.target.playVideo();
+          // Ativa bloqueador após 1s
+          setTimeout(function() {
+            document.getElementById('video-block').style.display = 'block';
+          }, 1000);
+          // CTA
+          setTimeout(mostrarCTA, CTA_SECS * 1000);
+        },
+        onStateChange: function(e) {
+          // Impede pause
+          if (e.data === YT.PlayerState.PAUSED) {
+            setTimeout(function() { e.target.playVideo(); }, 200);
+          }
         }
       }
     });
   }
+
+  // Callback da YT API
+  window.onYouTubeIframeAPIReady = function() {
+    if (window._ytReady) {
+      window._ytReady();
+      window._ytReady = null;
+    }
+  };
 
   function aplicar(cfg) {
     var linha1 = cfg.linha1 || DEFAULTS.linha1;
@@ -226,6 +254,10 @@
         this.src = 'https://img.youtube.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
         this.onerror = null;
       };
+      // Carrega YT API antecipadamente (já carregada quando clicar)
+      var tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
     } else {
       document.getElementById('play-cover').style.display = 'none';
       setTimeout(mostrarCTA, CTA_SECS * 1000);
