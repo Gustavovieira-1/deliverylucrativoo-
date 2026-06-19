@@ -36,48 +36,48 @@
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
     }
 
-    /* Bloqueador de interação com o player */
+    /* Bloqueador — só ativo após o vídeo iniciar */
     .video-block {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 10; cursor: default;
+      z-index: 10; cursor: default; display: none;
     }
 
-    /* Cover clicável com thumbnail */
+    /* Cover — botão ocupa 100% para garantir toque em qualquer área */
     .play-cover {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 20; cursor: pointer;
+      z-index: 20;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 18px; transition: opacity 0.4s ease;
+      background: none; border: none; padding: 0; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .play-cover .thumb {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover;
+      object-fit: cover; pointer-events: none;
     }
-    /* Escurece levemente a thumbnail */
-    .play-cover::after {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.35);
+    .play-cover .overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.35); pointer-events: none;
     }
     .play-btn {
-      position: relative; z-index: 2;
+      position: relative; z-index: 2; pointer-events: none;
       width: 80px; height: 80px; border-radius: 50%;
       background: linear-gradient(135deg, var(--red), var(--orange));
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 0 0 rgba(255,107,0,0.7);
       animation: pulse-play 1.6s ease-out infinite;
     }
     .play-btn svg { margin-left: 5px; }
     @keyframes pulse-play {
       0%   { box-shadow: 0 0 0 0 rgba(255,107,0,0.7); }
-      70%  { box-shadow: 0 0 0 18px rgba(255,107,0,0); }
+      70%  { box-shadow: 0 0 0 20px rgba(255,107,0,0); }
       100% { box-shadow: 0 0 0 0 rgba(255,107,0,0); }
     }
     .play-label {
-      position: relative; z-index: 2;
+      position: relative; z-index: 2; pointer-events: none;
       font-size: 13px; font-weight: 700; color: #fff;
       letter-spacing: 1px; text-transform: uppercase;
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-      background: rgba(0,0,0,0.5); padding: 6px 14px; border-radius: 4px;
+      background: rgba(0,0,0,0.55); padding: 6px 14px; border-radius: 4px;
     }
     .play-cover.hide { opacity: 0; pointer-events: none; }
 
@@ -116,17 +116,18 @@
   <div class="video-wrapper">
     <iframe id="yt-iframe" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
-    <!-- Bloqueia interação depois que o vídeo começa -->
-    <div class="video-block"></div>
+    <!-- Ativado APÓS o vídeo iniciar para bloquear pause/seek -->
+    <div class="video-block" id="video-block"></div>
 
-    <!-- Cover clicável — some quando usuário clica -->
-    <div class="play-cover" id="play-cover" onclick="iniciarVideo()">
+    <!-- BUTTON (não div) garante toque no iOS/Android -->
+    <button class="play-cover" id="play-cover" onclick="iniciarVideo()" type="button">
       <img class="thumb" id="thumb-img" src="" alt="">
+      <div class="overlay"></div>
       <div class="play-btn">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
       </div>
       <div class="play-label">▶ Assistir agora</div>
-    </div>
+    </button>
   </div>
 </section>
 
@@ -171,31 +172,32 @@
   function iniciarVideo() {
     if (!VIDEO_ID) return;
 
-    // autoplay=1 + mute=0 funciona em TODOS os browsers quando vem de gesto do usuário
-    // controls=0 no PC, controls=1 no mobile (obrigação do YT)
-    var mobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // Some cover imediatamente — feedback instantâneo ao toque
+    var cover = document.getElementById('play-cover');
+    cover.classList.add('hide');
 
+    // Monta src — com som (gesto do usuário garante isso)
     var src = 'https://www.youtube.com/embed/' + VIDEO_ID
-      + '?autoplay=1'
-      + '&mute=0'
-      + '&controls=' + (mobile ? 1 : 0)
+      + '?autoplay=1&mute=0&controls=0'
       + '&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&fs=0'
       + '&enablejsapi=1';
 
     document.getElementById('yt-iframe').src = src;
 
-    // Some o cover imediatamente (usuário já clicou)
-    document.getElementById('play-cover').classList.add('hide');
+    // Ativa bloqueador de pause/seek após 800ms (tempo de carregar)
+    setTimeout(function() {
+      document.getElementById('video-block').style.display = 'block';
+    }, 800);
 
-    // Conta CTA a partir do clique do usuário
+    // CTA
     setTimeout(mostrarCTA, CTA_SECS * 1000);
 
-    // Escuta mensagens do player para impedir pause
+    // Anti-pause via postMessage
     window.addEventListener('message', function(e) {
       var data;
       try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch(err) { return; }
       var state = (data.info && data.info.playerState != null) ? data.info.playerState : data.info;
-      if (state === 2) { // PAUSED — força retomar
+      if (state === 2) {
         var iframe = document.getElementById('yt-iframe');
         if (iframe && iframe.contentWindow) {
           iframe.contentWindow.postMessage(JSON.stringify({ event:'command', func:'playVideo', args:[] }), '*');
@@ -218,13 +220,11 @@
     CTA_SECS = parseInt(cfg.segundos) || 5;
 
     if (VIDEO_ID) {
-      // Carrega thumbnail — clique bonito com preview real do vídeo
-      document.getElementById('thumb-img').src =
-        'https://img.youtube.com/vi/' + VIDEO_ID + '/maxresdefault.jpg';
-      // Fallback se maxres não existir
       var img = document.getElementById('thumb-img');
+      img.src = 'https://img.youtube.com/vi/' + VIDEO_ID + '/maxresdefault.jpg';
       img.onerror = function() {
         this.src = 'https://img.youtube.com/vi/' + VIDEO_ID + '/hqdefault.jpg';
+        this.onerror = null;
       };
     } else {
       document.getElementById('play-cover').style.display = 'none';
